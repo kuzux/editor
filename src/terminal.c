@@ -3,8 +3,8 @@
 #include <sys/ioctl.h>
 #include <stdio.h>
 
-#include <editor/common.h>
-#include <editor/terminal.h>
+#include <fled/common.h>
+#include <fled/terminal.h>
 
 /* TODO: Abstract the terminal functions away into a bunch of separate 
  * callbacks so that we can run in a headless mode as well

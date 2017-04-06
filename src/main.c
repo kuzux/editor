@@ -1,7 +1,7 @@
-#include <editor/common.h>
-#include <editor/terminal.h>
-#include <editor/input.h>
-#include <editor/output.h>
+#include <fled/common.h>
+#include <fled/terminal.h>
+#include <fled/input.h>
+#include <fled/output.h>
 
 /* This program uses the termios stuff and
  * requires a unix-like environment to run
@@ -14,13 +14,13 @@
  * TODO: don't make that a global variable, 
  * is that actually possible when we use atexit?
  */
-editor_config_t* E;
+fled_config_t* E;
 
 void init_editor() {
     int res;
 
-    E = (editor_config_t*)malloc(sizeof(editor_config_t));
-    
+    E = (fled_config_t*)malloc(sizeof(fled_config_t));
+
     /* Bail on malloc failure */
     if(E == NULL) {
         DIE("malloc");

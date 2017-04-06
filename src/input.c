@@ -1,8 +1,8 @@
 #include <ctype.h>
 
-#include <editor/common.h>
-#include <editor/terminal.h>
-#include <editor/input.h>
+#include <fled/common.h>
+#include <fled/terminal.h>
+#include <fled/input.h>
 
 void move_cursor(int key) {
     switch(key) {

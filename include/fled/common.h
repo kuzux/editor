@@ -10,7 +10,7 @@
 #include <termios.h>
 
 /* define our version */
-#define EDITOR_VERSION "0.0.1"
+#define FLED_VERSION "0.0.1"
 
 #define CTRL_KEY(k) ((k) & 0x1f)
 
@@ -36,11 +36,11 @@
     exit(0);\
 }
 
-typedef struct editor_config {
+typedef struct fled_config {
     struct termios orig_term; /* terminal information at the start */
     int rows, cols; /* terminal size */
     int curx, cury; /* cursor position */
-} editor_config_t;
+} fled_config_t;
 
 typedef enum editor_keys {
     ARROW_LEFT = 1000,
@@ -57,6 +57,6 @@ typedef enum editor_keys {
 /* a struct containing global definitions
  * defined in main.c
  */
-extern editor_config_t* E;
+extern fled_config_t* E;
 
 #endif

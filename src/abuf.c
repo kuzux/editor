@@ -1,7 +1,7 @@
 #include <string.h>
 
-#include <editor/common.h>
-#include <editor/abuf.h>
+#include <fled/common.h>
+#include <fled/abuf.h>
 
 /* append a string to our buffer
  * note that this is a very naive implementation and will only

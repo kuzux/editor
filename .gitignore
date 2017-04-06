@@ -29,7 +29,8 @@
 *.hex
 kilo
 editor
-!include/editor/
+fled
+!include/fled/
 
 # Debug files
 *.dSYM/

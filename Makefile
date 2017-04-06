@@ -1,5 +1,5 @@
 OBJS:=build/main.o build/terminal.o build/input.o build/output.o build/abuf.o
-BIN:=build/editor
+BIN:=build/fled
 CFLAGS:=-Wall -Werror -Wextra -pedantic -std=c99 -O2 -Iinclude/
 
 all: $(BIN)

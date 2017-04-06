@@ -1,8 +1,8 @@
 #include <string.h>
 
-#include <editor/common.h>
-#include <editor/output.h>
-#include <editor/abuf.h>
+#include <fled/common.h>
+#include <fled/output.h>
+#include <fled/abuf.h>
 
 void draw_screen(abuf_t* ab) {
     int y;
@@ -10,7 +10,7 @@ void draw_screen(abuf_t* ab) {
     /* Define our welcome message */
     char welcome[80];
     int welcomelen = snprintf(welcome, sizeof(welcome),
-        "Yet another editor -- version %s", EDITOR_VERSION);
+        "Yet another editor (fled) -- version %s", FLED_VERSION);
 
     int wrap = 0;
     int wrapstart = 0;
