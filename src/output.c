@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include <editor/common.h>
 #include <editor/output.h>
 #include <editor/abuf.h>
@@ -5,14 +7,17 @@
 void draw_screen(abuf_t* ab) {
     int y;
 
+    /* Define our welcome message */
     char welcome[80];
     int welcomelen = snprintf(welcome, sizeof(welcome),
         "Yet another editor -- version %s", EDITOR_VERSION);
 
     int wrap = 0;
     int wrapstart = 0;
+
+    /* for each row on the screen */
     for (y = 0; y < E->rows; y++) {
-        /* this line clears the current line
+        /* This line clears the current line
          * the last argument is that we are writing 4 bytes
          * and the bytes are:
          * \x1b : the escape byte
@@ -27,25 +32,27 @@ void draw_screen(abuf_t* ab) {
          * Currently have no idea what causes this
          */
         if (wrap == 1) {
-            /* if we are continuing the message from the previous line */
+            /* If we are continuing the message from the previous line */
             abuf_append(ab, " ", 1);
 
             int remlen = welcomelen - wrapstart;
             int writelen = remlen;
 
             if(remlen > E->cols - 1) {
-                /* it still goes on, we have cols-1 characters more to
-                 * write on this line
+                /* It still goes on, we have cols-1 characters more to
+                 * write on this line.
+                 * The bug previously described should be something about 
+                 * these lines
                  */
 
                 wrap = 1;
                 wrapstart += E->cols - 1;
                 writelen = E->cols - 1;
             } else {
-                /* we finished writing */
+                /* We finished writing the line. Don't wrap anymore */
                 wrap = 0;
 
-                /* center the output */
+                /* Center the output with some spaces for padding */
                 int padding = (E->cols-1-writelen)/2;
                 while(padding--) {
                     abuf_append(ab, " ", 1);
@@ -54,7 +61,7 @@ void draw_screen(abuf_t* ab) {
 
             abuf_append(ab, welcome+wrapstart, writelen);
         } else if (y == E->rows / 3) {
-            abuf_append(ab, " ", 1);
+            abuf_append(ab, "~", 1);
 
             int writelen = welcomelen;
 
@@ -88,24 +95,33 @@ void draw_screen(abuf_t* ab) {
 void refresh_screen() {
     abuf_t ab = ABUF_INIT;
 
-    /* hide the cursor */
+    /* Hide the cursor */
     abuf_append(&ab, "\x1b[?25l", 6);
+
+    /* Position the cursor at top left corner
+     * H with no argument = 0;0H (to top left corner, outside of the screen)
+     * So that the cursor doesn't effect our repainting
+     */
     abuf_append(&ab, "\x1b[H", 3);
 
     draw_screen(&ab);
-    
-    /* position the cursor at top left corner
-     * H with no argument = 0;0H (to top left corner, outside of the screen)
+
+    /* Set the cursor to the cursor position defined in the editor config.
+     * We also add 1 as to translate between 0-indexed coordinates and
+     * 1-indexed coordinates.
      */
-    abuf_append(&ab, "\x1b[H", 3);
-    /* show the cursor again */
+    char buf[32];
+    snprintf(buf, sizeof(buf), "\x1b[%d;%dH", E->cury + 1, E->curx + 1);
+    abuf_append(&ab, buf, strlen(buf));
+
+    /* Show the cursor again */
     abuf_append(&ab, "\x1b[?25h", 6);
     
     /* write and STDOUT_FILENO are defined in unistd.h */
     write(STDOUT_FILENO, ab.buf, ab.len);
 
-    /* we don't need to free the append buffer since it's defined in the stack
-     * but cleaning its internal buffer is a good idea
+    /* We don't need to free the append buffer since it's defined in the stack
+     * but cleaning its internal buffer is generally a good idea.
      */
     free(ab.buf);
 }

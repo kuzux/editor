@@ -42,6 +42,18 @@ typedef struct editor_config {
     int curx, cury; /* cursor position */
 } editor_config_t;
 
+typedef enum editor_keys {
+    ARROW_LEFT = 1000,
+    ARROW_RIGHT,
+    ARROW_UP,
+    ARROW_DOWN,
+    PAGE_UP,
+    PAGE_DOWN,
+    HOME_KEY,
+    END_KEY,
+    DEL_KEY
+} editor_keys_t;
+
 /* a struct containing global definitions
  * defined in main.c
  */

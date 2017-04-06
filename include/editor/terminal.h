@@ -2,7 +2,7 @@
 #define _TERMINAL_H
 
 void rawmode();
-char readkey();
+int readkey();
 int get_ws(int*, int*);
 
 #endif
