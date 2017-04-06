@@ -1,29 +1,11 @@
-/*** includes ***/
-
 #include <unistd.h>
 #include <termios.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <stdio.h>
 #include <errno.h>
 
-/* this program uses the termios stuff and
- * requires a unix-like environment to run
- * linux and OSX are okay, but for windows;
- * see http://viewsourcecode.org/snaptoken/kilo/01.setup.html
- */
-
-/*** data ***/
+#include <editor/common.h>
+#include <editor/terminal.h>
 
 struct termios orig_term;
-
-/*** terminal ***/
-
-/* exit the program after an error */
-void die(const char *s) {
-  perror(s);
-  exit(1);
-}
 
 /* disable terminal raw mode
  * by restoring the terminal attributes we read earlier
@@ -87,38 +69,24 @@ void rawmode() {
     }
 }
 
-/*** init ***/
-
-int main() {
-    rawmode();
-
+char readkey() {
     char c;
     int res;
-    while(1) {
-        c = '\0';
 
-        /* use the read system call directly because we can't read a
-         * raw character with any other method.
-         */
-        res = read(STDIN_FILENO, &c, 1); /* read a character */
-        if (c == 'q') { /* continue while the character is not q */
-            break;
-        }
+    c = '\0';
 
-        /* exit if the read call fails
-         * also check for EAGAIN because cygwin does that when the read
-         * call times out. errno and EAGAIN are defined in errno.h
-         */
-        if(res == -1 && errno != EAGAIN) {
-            die("read");
-        }
-    
-        if (isprint(c)) {
-            printf("%d ('%c')\r\n", c, c);
-        } else if(c) { /* don't print 0 on a timeout */
-            printf("%d\r\n", c);
-        }
+    /* use the read system call directly because we can't read a
+     * raw character with any other method.
+     */
+    res = read(STDIN_FILENO, &c, 1); /* read a character */
+
+    /* exit if the read call fails
+     * also check for EAGAIN because cygwin does that when the read
+     * call times out. errno and EAGAIN are defined in errno.h
+     */
+    if(res == -1 && errno != EAGAIN) {
+        die("read");
     }
 
-    return 0;
+    return c;
 }
