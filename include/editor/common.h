@@ -37,9 +37,9 @@
 }
 
 typedef struct editor_config {
-  struct termios orig_term;
-  int rows;
-  int cols;
+    struct termios orig_term; /* terminal information at the start */
+    int rows, cols; /* terminal size */
+    int curx, cury; /* cursor position */
 } editor_config_t;
 
 /* a struct containing global definitions
