@@ -29,6 +29,7 @@
 *.hex
 kilo
 editor
+!include/editor/
 
 # Debug files
 *.dSYM/
