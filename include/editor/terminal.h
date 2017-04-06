@@ -3,5 +3,6 @@
 
 void rawmode();
 char readkey();
+int get_ws(int*, int*);
 
 #endif
