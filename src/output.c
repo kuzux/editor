@@ -10,15 +10,6 @@ typedef struct welcome_params {
     int do_padding;
 } welcome_params_t;
 
-void scroll() {
-    if (E->cury < E->offy) {
-        E->offy = E->cury;
-    }
-    if (E->cury >= E->offy + E->sz_rows) {
-        E->offy = E->cury - E->sz_rows;
-    }
-}
-
 void draw_welcome_line(abuf_t* ab, int y, welcome_params_t wp) {
     /* Define our welcome message
      * TODO: initialize those only once?
@@ -150,6 +141,7 @@ void draw_screen(abuf_t* ab) {
 
     /* for each row on the screen */
     for (y = 0; y < E->sz_rows; y++) {
+        DEBUG_LOGF("%d\n", y);
         if (y + E->offy < E->rows->length) {
             draw_editor_line(ab, y);
         } else {
@@ -159,7 +151,8 @@ void draw_screen(abuf_t* ab) {
 }
 
 void refresh_screen() {
-    scroll();
+    DEBUG_LOG("Start draw");
+    DEBUG_LOGF("offset %d %d\n", E->offx, E->offy);
 
     abuf_t ab = ABUF_INIT;
 
@@ -172,7 +165,9 @@ void refresh_screen() {
      */
     abuf_append(&ab, "\x1b[H", 3);
 
+    DEBUG_LOG("Start draw_screen");
     draw_screen(&ab);
+    DEBUG_LOG("End draw_screen");
 
     /* Set the cursor to the cursor position defined in the editor config.
      * We also add 1 as to translate between 0-indexed coordinates and
@@ -192,4 +187,5 @@ void refresh_screen() {
      * but cleaning its internal buffer is generally a good idea.
      */
     free(ab.buf);
+    DEBUG_LOG("End draw");
 }

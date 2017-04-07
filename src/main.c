@@ -48,9 +48,20 @@ void init_editor() {
 
     /* And with an empty buffer */
     E->rows = make_rows();
+
+    /* Initialize the debug log */
+#if DEBUG
+    E->debug_log = fopen("debug.log", "w");
+    if(E->debug_log == NULL) {
+        DIE("debug log");
+    }
+    DEBUG_LOG("Initialized editor");
+#endif
 }
 
 void load_file(const char* filename) {
+    DEBUG_LOG("Loading file");
+
     if(E == NULL) {
         DIE("editor config");
     }
@@ -89,6 +100,14 @@ void load_file(const char* filename) {
 
     free(line);
     fclose(fp);
+
+    DEBUG_LOG("Loaded file");
+}
+
+void cleanup() {
+    #if DEBUG
+    fclose(E->debug_log);
+    #endif
 }
 
 int main(int argc, char** argv) {
@@ -104,6 +123,8 @@ int main(int argc, char** argv) {
         refresh_screen();
         process_key();
     }
+
+    cleanup();
 
     return 0;
 }

@@ -13,7 +13,7 @@
 
 /* Define our version */
 #define FLED_VERSION "0.0.1"
-#define DEBUG 0
+#define DEBUG 1
 
 #define CTRL_KEY(k) ((k) & 0x1f)
 
@@ -43,6 +43,21 @@
     exit(1);\
 }
 
+/* Append to our debug log
+ * No need for this define to do anything if debug is off
+ */
+#define DEBUG_LOG(msg) {\
+    if(DEBUG) {\
+        fprintf(E->debug_log, "%s\n", (msg));\
+        fflush(E->debug_log);\
+    }\
+}
+#define DEBUG_LOGF(format, ...) {\
+    if(DEBUG) {\
+        fprintf(E->debug_log, format, __VA_ARGS__);\
+        fflush(E->debug_log);\
+    }\
+}
 /* Exit the program normally
  * clear the screen before a successful exit as well
  */
@@ -69,6 +84,10 @@ typedef struct fled_config {
 
     /* An data structure to store each row */
     rows_t* rows;
+
+#if DEBUG
+    FILE* debug_log;
+#endif
 } fled_config_t;
 
 typedef enum special_keys {
