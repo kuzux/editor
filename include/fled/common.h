@@ -9,25 +9,39 @@
 #include <unistd.h>
 #include <termios.h>
 
-/* define our version */
+/* Define our version */
 #define FLED_VERSION "0.0.1"
+#define DEBUG 0
 
 #define CTRL_KEY(k) ((k) & 0x1f)
 
-/* exit the program after an error
+/* Exit the program after an error
  * clear the screen before we exit
- * it is explained in output.c
- * we can't do this atexxit because that also clears the error message
- * printed out by the perror function
+ * we can't do this atexit because that also clears the error message
+ * printed out by the perror function.
+ * Also note that the comments are stripped before the preprocessor
+ * runs, or at least in the C99 standard it does, so we can safely
+ * put comments in our preprocessor definition (provided we put a 
+ * backslash at the end of the comment)
  */
 #define DIE(s) {\
+    /* Clear the entire screen
+     * \x1b[ : start an escape sequence
+     * 2 : entire screen
+     * J : clear
+     */\
     write(STDOUT_FILENO, "\x1b[2J", 4);\
+\
+    /* Move the cursor to an off-screen position 
+     * The default arguments are 0;0
+     */\
     write(STDOUT_FILENO, "\x1b[H", 3);\
+\
     perror(s);\
     exit(1);\
 }
 
-/* exit the program normally
+/* Exit the program normally
  * clear the screen before a successful exit as well
  */
 #define EXIT() {\
@@ -36,13 +50,31 @@
     exit(0);\
 }
 
+typedef struct row {
+    char* buf;
+    int len;
+} row_t;
+
 typedef struct fled_config {
-    struct termios orig_term; /* terminal information at the start */
-    int rows, cols; /* terminal size */
-    int curx, cury; /* cursor position */
+    /* Terminal information at the start
+     * a system-defined termios structure
+     */
+    struct termios orig_term;
+
+    /* Terminal size in rows and columns (we are obviously in text mode */
+    int sz_rows, sz_cols;
+
+    /* Cursor position, 0-indexed */
+    int curx, cury;
+
+    /* An array to store each row 
+     * TODO: Maybe make that a more efficient structure?
+     */
+    int num_rows;
+    row_t* rows;
 } fled_config_t;
 
-typedef enum editor_keys {
+typedef enum special_keys {
     ARROW_LEFT = 1000,
     ARROW_RIGHT,
     ARROW_UP,
@@ -52,10 +84,11 @@ typedef enum editor_keys {
     HOME_KEY,
     END_KEY,
     DEL_KEY
-} editor_keys_t;
+} special_keys_t;
 
-/* a struct containing global definitions
- * defined in main.c
+/* A struct containing global definitions
+ * defined in main.c in a non-extern manner
+ * although it is not really used there
  */
 extern fled_config_t* E;
 

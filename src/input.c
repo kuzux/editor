@@ -12,7 +12,7 @@ void move_cursor(int key) {
             }
             break;
         case ARROW_DOWN:
-            if (E->cury < E->rows - 1) {
+            if (E->cury < E->sz_rows - 1) {
                 E->cury++;
             }
             break;
@@ -22,7 +22,7 @@ void move_cursor(int key) {
             }
             break;
         case ARROW_RIGHT:
-            if (E->curx < E->cols - 1) {
+            if (E->curx < E->sz_cols - 1) {
                 E->curx++;
             }
             break;
@@ -46,7 +46,7 @@ void process_key() {
             move_cursor(c);
             break;
         case PAGE_UP:
-            times = E->rows;
+            times = E->sz_rows;
             while (times--) {
                 /* Use the same up/down movement routine so that
                  * we still have the bounds checking
@@ -55,7 +55,7 @@ void process_key() {
             }
             break;
         case PAGE_DOWN:
-            times = E->rows;
+            times = E->sz_rows;
             while (times--) {
                 move_cursor(ARROW_DOWN);
             }
@@ -64,7 +64,7 @@ void process_key() {
             E->curx = 0;
             break;
         case END_KEY:
-            E->curx = E->cols - 1;
+            E->curx = E->sz_cols - 1;
             break;
         case DEL_KEY:
             /* Do nothing */

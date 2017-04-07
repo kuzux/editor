@@ -1,3 +1,6 @@
+#include <string.h>
+#include <stdio.h>
+
 #include <fled/common.h>
 #include <fled/terminal.h>
 #include <fled/input.h>
@@ -27,16 +30,65 @@ void init_editor() {
     }
 
     /* Get the window size */
-    res = get_ws(&E->rows, &E->cols);
+    res = get_ws(&E->sz_rows, &E->sz_cols);
 
     /* If the call fails */
     if(res == -1) {
         DIE("get_ws");
     }
+
+    /* Start at the top left corner */
+    E->curx = E->cury = 0;
+
+    /* And with an empty buffer */
+    E->num_rows = 0;
 }
 
-int main() {
+void load_file(const char* filename) {
+    FILE* fp = fopen(filename, "r");
+
+    if(fp == NULL) {
+        DIE("fopen");
+    }
+
+    E->rows = (row_t*)malloc(1*sizeof(row_t));
+    if(E->rows == NULL) {
+        DIE("malloc");
+    }
+        
+    size_t linecap = 0;
+    int linelen;
+    char* line = NULL;
+
+    linelen = getline(&line, &linecap, fp);
+
+    if(linelen != -1) {
+        if(linelen > 0 && (line[linelen - 1] == '\n' || line[linelen - 1] == '\r')) {
+            linelen--;
+        }
+
+        E->rows[0].len = linelen;
+        E->rows[0].buf = malloc(linelen + 1);
+        if(E->rows[0].buf == NULL) {
+            DIE("malloc");
+        }
+
+        memcpy(E->rows[0].buf, line, linelen);
+        E->rows[0].buf[E->rows[0].len] = '\0';
+
+        E->num_rows = 1;
+    }
+
+    free(line);
+    fclose(fp);
+}
+
+int main(int argc, char** argv) {
     init_editor();
+
+    if(argc >= 2) {
+        load_file(argv[1]);
+    }
 
     rawmode();
 
