@@ -5,6 +5,14 @@
 #include <fled/input.h>
 
 void move_cursor(int key) {
+    /* Set the current row length if the current row exists */
+    int currlen = 0;
+
+    if(E->cury + E->offy < E->rows->length) {
+        row_t curr = E->rows->rows[0];
+        currlen = curr.len;
+    }
+
     switch(key) {
         case ARROW_UP:
             if (E->cury > 0) {

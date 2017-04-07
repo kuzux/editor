@@ -1,4 +1,4 @@
-OBJS:=build/main.o build/terminal.o build/input.o build/output.o build/abuf.o
+OBJS:=build/main.o build/terminal.o build/input.o build/output.o build/abuf.o build/rows.o
 BIN:=build/fled
 CFLAGS:=-Wall -Werror -Wextra -pedantic -std=c99 -O2 -Iinclude/
 

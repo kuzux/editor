@@ -12,8 +12,14 @@
  * see http://viewsourcecode.org/snaptoken/kilo/01.setup.html
  */
 
+/* GLOBAL TODO: handle multibyte encodings
+ * or just any non-ASCII one
+ * also RTL text etc.
+ */
+
 /* A global variable that holds the editor state
- * actually defined (as an extern) in common.h and available to all files that include it
+ * actually defined (as an extern) in common.h and available to all files
+ * that include it
  * TODO: don't make that a global variable, 
  * is that actually possible when we use atexit?
  */
@@ -41,43 +47,45 @@ void init_editor() {
     E->curx = E->cury = 0;
 
     /* And with an empty buffer */
-    E->num_rows = 0;
+    E->rows = make_rows();
 }
 
 void load_file(const char* filename) {
+    if(E == NULL) {
+        DIE("editor config");
+    }
+
     FILE* fp = fopen(filename, "r");
 
     if(fp == NULL) {
         DIE("fopen");
     }
 
-    E->rows = (row_t*)malloc(1*sizeof(row_t));
-    if(E->rows == NULL) {
-        DIE("malloc");
-    }
-        
     size_t linecap = 0;
     int linelen;
     char* line = NULL;
 
-    linelen = getline(&line, &linecap, fp);
-
-    if(linelen != -1) {
+    while((linelen = getline(&line, &linecap, fp)) != -1) {
+        /* TODO: handle unicode */
         if(linelen > 0 && (line[linelen - 1] == '\n' || line[linelen - 1] == '\r')) {
             linelen--;
         }
 
-        E->rows[0].len = linelen;
-        E->rows[0].buf = malloc(linelen + 1);
-        if(E->rows[0].buf == NULL) {
+        row_t newrow;
+
+        newrow.len = linelen;
+        newrow.buf = malloc(linelen + 1);
+        if(newrow.buf == NULL) {
             DIE("malloc");
         }
 
-        memcpy(E->rows[0].buf, line, linelen);
-        E->rows[0].buf[E->rows[0].len] = '\0';
-
-        E->num_rows = 1;
+        memcpy(newrow.buf, line, linelen);
+        newrow.buf[linelen] = '\0';
+        insert_row(E->rows, &newrow);
     }
+
+    /* Reset the offset */
+    E->offx = E->offy = 0;
 
     free(line);
     fclose(fp);

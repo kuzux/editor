@@ -10,16 +10,29 @@ typedef struct welcome_params {
     int do_padding;
 } welcome_params_t;
 
-void draw_welcome_line(abuf_t* ab, int y, welcome_params_t* wp) {
-    /* Temporarily get rid of the 'Variable not used' warning */
-    wp = NULL;
+void scroll() {
+    if (E->cury < E->offy) {
+        E->offy = E->cury;
+    }
+    if (E->cury >= E->offy + E->sz_rows) {
+        E->offy = E->cury - E->sz_rows;
+    }
+}
 
+void draw_welcome_line(abuf_t* ab, int y, welcome_params_t wp) {
     /* Define our welcome message
      * TODO: initialize those only once?
      */
     char welcome[80];
-    int welcomelen = snprintf(welcome, sizeof(welcome),
-        "Yet another editor (fled) -- version %s", FLED_VERSION);
+    int welcomelen = 0;
+
+    if(wp.print_msg == 1) {
+        /* snprintf the number limited version of sprintf 
+         * defined in stdio.h
+         */
+        welcomelen = snprintf(welcome, sizeof(welcome),
+            "Yet another editor (fled) -- version %s", FLED_VERSION);
+    }
 
     /* Those values should be conserved between iterations
      * TODO: refactor into parameters or a separate wrap method
@@ -40,9 +53,8 @@ void draw_welcome_line(abuf_t* ab, int y, welcome_params_t* wp) {
     /* TODO: Wrapping gets wonky if it takes more than two lines
      * However, wrapping for 2 lines works well.
      * Currently have no idea what causes this
-     * TODO: Make wrapping configurable
      */
-    if (wrap == 1) {
+    if (wrap == 1 && wp.do_wrap == 1) {
         /* If we are continuing the message from the previous line */
         abuf_append(ab, " ", 1);
 
@@ -63,33 +75,42 @@ void draw_welcome_line(abuf_t* ab, int y, welcome_params_t* wp) {
             /* We finished writing the line. Don't wrap anymore */
             wrap = 0;
 
-            /* Center the output with some spaces for padding */
-            int padding = (E->sz_cols-1-writelen)/2;
-            while(padding--) {
-                abuf_append(ab, " ", 1);
+            if(wp.do_padding == 1) {
+                /* Center the output with some spaces for padding */
+                int padding = (E->sz_cols-1-writelen)/2;
+                while(padding--) {
+                    abuf_append(ab, " ", 1);
+                }
             }
         }
 
         abuf_append(ab, welcome+wrapstart, writelen);
-    } else if (y == E->sz_rows / 3) {
+    } else if (wp.print_msg == 1 && y == E->sz_rows / 3) {
         abuf_append(ab, "~", 1);
 
         int writelen = welcomelen;
 
         if (welcomelen > E->sz_cols - 1){
-            /* The message goes on, we'll need to continue on to the
-             * next line, we were able to write cols - 1 characters
-             * on this line. Set wrap to 1 to continue on the next one
-             * Also set where to be continued on the next line
-             */
-            wrap = 1;
-            wrapstart = E->sz_cols - 1;
-            writelen = E->sz_cols - 1;
+            if(wp.do_wrap) {
+                /* The message goes on, we'll need to continue on to the
+                 * next line, we were able to write cols - 1 characters
+                 * on this line. Set wrap to 1 to continue on the next one
+                 * Also set where to be continued on the next line
+                 */
+                wrap = 1;
+                wrapstart = E->sz_cols - 1;
+                writelen = E->sz_cols - 1;
+            } else {
+                /* Just truncate the message */
+                writelen = E->sz_cols - 1;
+            }
         }
 
-        int padding = (E->sz_cols-1-writelen)/2;
-        while(padding--) {
-            abuf_append(ab, " ", 1);
+        if(wp.do_padding == 1) {
+            int padding = (E->sz_cols-1-writelen)/2;
+            while(padding--) {
+                abuf_append(ab, " ", 1);
+            }
         }
 
         abuf_append(ab, welcome, writelen);
@@ -106,13 +127,13 @@ void draw_editor_line(abuf_t* ab, int y) {
     /* Clear the line */
     abuf_append(ab, "\x1b[2K", 4);
 
-    int len = E->rows[y].len;
+    int len = E->rows->rows[y + E->offy].len - E->offx;
 
     /* TODO: wrap this output as well */
     if(len > E->sz_cols) {
         len = E->sz_cols;
     }
-    abuf_append(ab, E->rows[0].buf, len);
+    abuf_append(ab, E->rows->rows[y + E->offy].buf + E->offx, len);
 
     /* Switch to new line */
     abuf_append(ab, "\r\n", 2);
@@ -121,17 +142,25 @@ void draw_editor_line(abuf_t* ab, int y) {
 void draw_screen(abuf_t* ab) {
     int y = 0;
 
+    /* TODO: don't hardcode that */
+    welcome_params_t wp_default = {0, 1, 1};
+
+    /* Print a welcome message only if we have no file loaded */
+    wp_default.print_msg = (E && E->rows && E->rows->length==0)?1:0;
+
     /* for each row on the screen */
     for (y = 0; y < E->sz_rows; y++) {
-        if (y < E->num_rows) {
+        if (y + E->offy < E->rows->length) {
             draw_editor_line(ab, y);
         } else {
-            draw_welcome_line(ab, y, NULL);
+            draw_welcome_line(ab, y, wp_default);
         }
     }
 }
 
 void refresh_screen() {
+    scroll();
+
     abuf_t ab = ABUF_INIT;
 
     /* Hide the cursor */

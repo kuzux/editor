@@ -9,6 +9,8 @@
 #include <unistd.h>
 #include <termios.h>
 
+#include <fled/rows.h>
+
 /* Define our version */
 #define FLED_VERSION "0.0.1"
 #define DEBUG 0
@@ -50,11 +52,6 @@
     exit(0);\
 }
 
-typedef struct row {
-    char* buf;
-    int len;
-} row_t;
-
 typedef struct fled_config {
     /* Terminal information at the start
      * a system-defined termios structure
@@ -67,11 +64,11 @@ typedef struct fled_config {
     /* Cursor position, 0-indexed */
     int curx, cury;
 
-    /* An array to store each row 
-     * TODO: Maybe make that a more efficient structure?
-     */
-    int num_rows;
-    row_t* rows;
+    /* Display offset in the file, 0-indexed again */
+    int offx, offy;
+
+    /* An data structure to store each row */
+    rows_t* rows;
 } fled_config_t;
 
 typedef enum special_keys {
