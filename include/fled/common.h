@@ -14,6 +14,8 @@
 /* Define our version */
 #define FLED_VERSION "0.0.1"
 #define DEBUG 1
+#define NDEBUG
+#define FLED_TABSTOP 4
 
 #define CTRL_KEY(k) ((k) & 0x1f)
 
@@ -68,16 +70,27 @@
 }
 
 typedef struct fled_config {
+    /* TODO: Refactor some of those to a buffer or a
+     * display object or something
+     */
+
     /* Terminal information at the start
      * a system-defined termios structure
      */
     struct termios orig_term;
 
-    /* Terminal size in rows and columns (we are obviously in text mode */
+    /* Terminal size in rows and columns (we are obviously in text mode) */
     int sz_rows, sz_cols;
 
-    /* Cursor position, 0-indexed */
+    /* Cursor position, 0-indexed
+     * in screen coordinates
+     */
     int curx, cury;
+
+    /* X position in the source file 
+     * in source coordinates
+     */
+    int srcx;
 
     /* Display offset in the file, 0-indexed again */
     int offx, offy;

@@ -95,13 +95,38 @@ void free_rows(rows_t* rows) {
 
 void calc_render_row(row_t* row) {
     free(row->rbuf);
-    row->rbuf = malloc(row->len + 1);
+    /* TODO: Handle some unicode here */
+    int finallen = 0;
 
     int i = 0, j = 0;
 
-    while(j < row->len) {
-        row->rbuf[i++] = row->buf[j++];
+    for(i = 0; i < row->len; i++) {
+        if(row->buf[i]=='\t'){
+            finallen += FLED_TABSTOP;
+        } else {
+            finallen++;
+        }
     }
+
+    finallen++;
+
+    row->rbuf = malloc(finallen);
+
+    i = 0;
+    j = 0;
+
+    while(j < row->len) {
+        if(row->buf[j]=='\t') {
+            row->rbuf[i++] = ' ';
+            while(i % FLED_TABSTOP != 0) {
+                row->rbuf[i++] = ' ';
+            }
+            j++;
+        } else {
+            row->rbuf[i++] = row->buf[j++];
+        }
+    }
+
     row->rbuf[i] = '\0';
     row->rlen = i;
 }

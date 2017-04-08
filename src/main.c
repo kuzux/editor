@@ -61,6 +61,7 @@ void init_editor() {
 
     /* Start at the top left corner */
     EF->curx = EF->cury = 0;
+    EF->srcx = 0;
 
     /* And with an empty buffer */
     EF->rows = make_rows();
@@ -113,7 +114,7 @@ void load_file(const char* filename) {
         newrow.rlen = 0;
 
         calc_render_row(&newrow);
-        
+
         insert_row(EF->rows, &newrow);
     }
 
