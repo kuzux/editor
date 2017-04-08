@@ -15,7 +15,7 @@
  * by restoring the terminal attributes we read earlier
  */
 void rawmode_disable() {
-    int res = tcsetattr(STDIN_FILENO, TCSAFLUSH, &E->orig_term);
+    int res = tcsetattr(STDIN_FILENO, TCSAFLUSH, &EF->orig_term);
     if(res == -1) {
         DIE("tcsetattr");
     }
@@ -30,7 +30,7 @@ void rawmode() {
     struct termios raw;
     int res;
 
-    res = tcgetattr(STDIN_FILENO, &E->orig_term);
+    res = tcgetattr(STDIN_FILENO, &EF->orig_term);
 
     /* Bail if the call fails
        die is a utility macro defined in editor/common.h */
@@ -40,7 +40,7 @@ void rawmode() {
 
     atexit(rawmode_disable);
 
-    raw = E->orig_term;
+    raw = EF->orig_term;
 
     /* We disable several flags in the termios structure's flag fields
      * using the bitwise masks defined in termios.h
@@ -193,10 +193,6 @@ int get_ws_fallback(int* rows, int* cols) {
  * Return value is 0 on success and -1 on failure.
  */
 int get_ws(int* rows, int* cols) {
-    /* TODO: can we bind a callback to size change if we are using a
-     * terminal emulator on a GUI
-     */
-
     /* try to find the terminal window size
      * the ioctl function and the TIOCGWINSZ macro is defined in sys/ioctl.h
      */

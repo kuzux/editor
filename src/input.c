@@ -9,36 +9,35 @@ void scroll(int key) {
     int currlen = 0;
     row_t curr;
 
-    if(E->cury + E->offy < E->rows->length) {
+    if(EF->cury + EF->offy < EF->rows->length) {
         /* Not sure why this is off by one
          * but it seems so
          */
-        curr = E->rows->rows[E->cury + E->offy + 1];
+        curr = EF->rows->rows[EF->cury + EF->offy + 1];
         currlen = curr.len;
     }
 
     switch(key) {
 
         case ARROW_UP:
-            if(E->offy > 0) {
-                E->offy--;
+            if(EF->offy > 0) {
+                EF->offy--;
             }
             break;
         case ARROW_DOWN:
-            if(E->sz_rows + E->offy <= E->rows->length) {
-                E->offy++;
+            if(EF->sz_rows + EF->offy <= EF->rows->length) {
+                EF->offy++;
             }
             break;
         case ARROW_LEFT:
-            if(E->offx > 0) {
-                E->offx--;
+            if(EF->offx > 0) {
+                EF->offx--;
             }
             break;
         case ARROW_RIGHT:
-            //DEBUG_LOGF("%d %d %d\n", E->sz_cols, E->offx, currlen);
-            DEBUG_LOGF("%d %s\n", E->cury + E->offy, curr.buf);
-            if(E->sz_cols + E->offx <= currlen) {
-                E->offx++;
+            DEBUG_LOGF("%d %s\n", EF->cury + EF->offy, curr.buf);
+            if(EF->sz_cols + EF->offx <= currlen) {
+                EF->offx++;
             }
             DEBUG_LOG("Do we get there?");
             break;
@@ -48,30 +47,30 @@ void scroll(int key) {
 void move_cursor(int key) {
     switch(key) {
         case ARROW_UP:
-            if (E->cury > 0) {
-                E->cury--;
-            } else if (E->cury == 0) {
+            if (EF->cury > 0) {
+                EF->cury--;
+            } else if (EF->cury == 0) {
                 scroll(key);
             }
             break;
         case ARROW_DOWN:
-            if (E->cury < E->sz_rows - 1) {
-                E->cury++;
-            } else if (E->cury == E->sz_rows - 1) {
+            if (EF->cury < EF->sz_rows - 1) {
+                EF->cury++;
+            } else if (EF->cury == EF->sz_rows - 1) {
                 scroll(key);
             }
             break;
         case ARROW_LEFT:
-            if (E->curx > 0) {
-                E->curx--;
-            } else if (E->curx == 0) {
+            if (EF->curx > 0) {
+                EF->curx--;
+            } else if (EF->curx == 0) {
                 scroll(key);
             }
             break;
         case ARROW_RIGHT:
-            if (E->curx < E->sz_cols - 1) {
-                E->curx++;
-            } else if (E->curx == E->sz_cols - 1) {
+            if (EF->curx < EF->sz_cols - 1) {
+                EF->curx++;
+            } else if (EF->curx == EF->sz_cols - 1) {
                 scroll(key);
             }
             break;
@@ -95,7 +94,7 @@ void process_key() {
             move_cursor(c);
             break;
         case PAGE_UP:
-            times = E->sz_rows;
+            times = EF->sz_rows;
             while (times--) {
                 /* Use the same up/down movement routine so that
                  * we still have the bounds checking
@@ -104,16 +103,16 @@ void process_key() {
             }
             break;
         case PAGE_DOWN:
-            times = E->sz_rows;
+            times = EF->sz_rows;
             while (times--) {
                 move_cursor(ARROW_DOWN);
             }
             break;
         case HOME_KEY:
-            E->curx = 0;
+            EF->curx = 0;
             break;
         case END_KEY:
-            E->curx = E->sz_cols - 1;
+            EF->curx = EF->sz_cols - 1;
             break;
         case DEL_KEY:
             /* Do nothing */

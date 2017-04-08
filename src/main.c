@@ -1,5 +1,7 @@
 #include <string.h>
 #include <stdio.h>
+#include <signal.h>
+#include <stdlib.h>
 
 #include <fled/common.h>
 #include <fled/terminal.h>
@@ -20,23 +22,37 @@
 /* A global variable that holds the editor state
  * actually defined (as an extern) in common.h and available to all files
  * that include it
+ * The name is a joke. It used to be called just E
  * TODO: don't make that a global variable, 
  * is that actually possible when we use atexit?
  */
-fled_config_t* E;
+fled_config_t* EF;
+
+void resize_editor(int signo) {
+    if(signo!=SIGWINCH) {
+        DIE("resize_editor");
+    }
+
+    int res = get_ws(&EF->sz_rows, &EF->sz_cols);
+
+    if(res == -1) {
+        DIE("get_ws");
+    }
+}
 
 void init_editor() {
+    signal(SIGWINCH, resize_editor);
     int res;
 
-    E = (fled_config_t*)malloc(sizeof(fled_config_t));
+    EF = (fled_config_t*)malloc(sizeof(fled_config_t));
 
     /* Bail on malloc failure */
-    if(E == NULL) {
+    if(EF == NULL) {
         DIE("malloc");
     }
 
     /* Get the window size */
-    res = get_ws(&E->sz_rows, &E->sz_cols);
+    res = get_ws(&EF->sz_rows, &EF->sz_cols);
 
     /* If the call fails */
     if(res == -1) {
@@ -44,15 +60,15 @@ void init_editor() {
     }
 
     /* Start at the top left corner */
-    E->curx = E->cury = 0;
+    EF->curx = EF->cury = 0;
 
     /* And with an empty buffer */
-    E->rows = make_rows();
+    EF->rows = make_rows();
 
     /* Initialize the debug log */
 #if DEBUG
-    E->debug_log = fopen("debug.log", "w");
-    if(E->debug_log == NULL) {
+    EF->debug_log = fopen("debug.log", "w");
+    if(EF->debug_log == NULL) {
         DIE("debug log");
     }
     DEBUG_LOG("Initialized editor");
@@ -62,7 +78,7 @@ void init_editor() {
 void load_file(const char* filename) {
     DEBUG_LOG("Loading file");
 
-    if(E == NULL) {
+    if(EF == NULL) {
         DIE("editor config");
     }
 
@@ -92,11 +108,11 @@ void load_file(const char* filename) {
 
         memcpy(newrow.buf, line, linelen);
         newrow.buf[linelen] = '\0';
-        insert_row(E->rows, &newrow);
+        insert_row(EF->rows, &newrow);
     }
 
     /* Reset the offset */
-    E->offx = E->offy = 0;
+    EF->offx = EF->offy = 0;
 
     free(line);
     fclose(fp);
@@ -106,7 +122,7 @@ void load_file(const char* filename) {
 
 void cleanup() {
     #if DEBUG
-    fclose(E->debug_log);
+    fclose(EF->debug_log);
     #endif
 }
 
@@ -125,6 +141,7 @@ int main(int argc, char** argv) {
     }
 
     cleanup();
+    DEBUG_LOG("Exiting normally");
 
     return 0;
 }

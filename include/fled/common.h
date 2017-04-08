@@ -48,14 +48,14 @@
  */
 #define DEBUG_LOG(msg) {\
     if(DEBUG) {\
-        fprintf(E->debug_log, "%s\n", (msg));\
-        fflush(E->debug_log);\
+        fprintf(EF->debug_log, "%s\n", (msg));\
+        fflush(EF->debug_log);\
     }\
 }
 #define DEBUG_LOGF(format, ...) {\
     if(DEBUG) {\
-        fprintf(E->debug_log, format, __VA_ARGS__);\
-        fflush(E->debug_log);\
+        fprintf(EF->debug_log, format, __VA_ARGS__);\
+        fflush(EF->debug_log);\
     }\
 }
 /* Exit the program normally
@@ -106,6 +106,6 @@ typedef enum special_keys {
  * defined in main.c in a non-extern manner
  * although it is not really used there
  */
-extern fled_config_t* E;
+extern fled_config_t* EF;
 
 #endif
