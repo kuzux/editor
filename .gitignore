@@ -35,3 +35,4 @@ fled
 # Debug files
 *.dSYM/
 *.su
+debug.log

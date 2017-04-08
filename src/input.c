@@ -30,12 +30,12 @@ void scroll(int key) {
             }
             break;
         case ARROW_LEFT:
-            if(E->offy > 0) {
+            if(E->offx > 0) {
                 E->offx--;
             }
             break;
         case ARROW_RIGHT:
-            DEBUG_LOGF("%d %d %d\n", E->sz_cols, E->offx, currlen);
+            //DEBUG_LOGF("%d %d %d\n", E->sz_cols, E->offx, currlen);
             DEBUG_LOGF("%d %s\n", E->cury + E->offy, curr.buf);
             if(E->sz_cols + E->offx <= currlen) {
                 E->offx++;
@@ -72,7 +72,6 @@ void move_cursor(int key) {
             if (E->curx < E->sz_cols - 1) {
                 E->curx++;
             } else if (E->curx == E->sz_cols - 1) {
-                DEBUG_LOG("last col");
                 scroll(key);
             }
             break;

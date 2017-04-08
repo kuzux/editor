@@ -124,7 +124,11 @@ void draw_editor_line(abuf_t* ab, int y) {
     if(len > E->sz_cols) {
         len = E->sz_cols;
     }
-    abuf_append(ab, E->rows->rows[y + E->offy].buf + E->offx, len);
+
+    if(len > 0) {
+        /* Don't display hidden lines */
+        abuf_append(ab, E->rows->rows[y + E->offy].buf + E->offx, len);
+    }
 
     /* Switch to new line */
     abuf_append(ab, "\r\n", 2);
@@ -141,7 +145,6 @@ void draw_screen(abuf_t* ab) {
 
     /* for each row on the screen */
     for (y = 0; y < E->sz_rows; y++) {
-        DEBUG_LOGF("%d\n", y);
         if (y + E->offy < E->rows->length) {
             draw_editor_line(ab, y);
         } else {
