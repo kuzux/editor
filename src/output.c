@@ -120,7 +120,7 @@ void draw_editor_line(abuf_t* ab, int y) {
     /* Clear the line */
     abuf_append(ab, "\x1b[2K", 4);
 
-    int len = EF->rows->rows[y + EF->offy].len - EF->offx;
+    int len = EF->rows->rows[y + EF->offy].rlen - EF->offx;
 
     /* TODO: wrap this output as well */
     if(len > EF->sz_cols) {
@@ -129,7 +129,7 @@ void draw_editor_line(abuf_t* ab, int y) {
 
     if(len > 0) {
         /* Don't display hidden lines */
-        abuf_append(ab, EF->rows->rows[y + EF->offy].buf + EF->offx, len);
+        abuf_append(ab, EF->rows->rows[y + EF->offy].rbuf + EF->offx, len);
     }
 
     /* Switch to new line */

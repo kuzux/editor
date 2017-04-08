@@ -4,6 +4,20 @@
 #include <fled/terminal.h>
 #include <fled/input.h>
 
+void snap_cursor() {
+    int currlen = 0;
+
+    if(EF->cury + EF->offy < EF->rows->length) {
+        currlen = EF->rows->rows[EF->cury + EF->offy].rlen;
+    }
+
+    if(currlen < EF->offx) {
+        EF->offx = currlen - 1;
+    } else if(EF->curx + EF->offx > currlen) {
+        EF->curx = currlen - EF->offx;
+    }
+}
+
 void scroll(int key) {
     /* Set the current row length if the current row exists */
     int currlen = 0;
@@ -14,7 +28,7 @@ void scroll(int key) {
          * but it seems so
          */
         curr = EF->rows->rows[EF->cury + EF->offy + 1];
-        currlen = curr.len;
+        currlen = curr.rlen;
     }
 
     switch(key) {
@@ -45,6 +59,12 @@ void scroll(int key) {
 }
 
 void move_cursor(int key) {
+    int currlen = 0;
+
+    if(EF->cury + EF->offy < EF->rows->length) {
+        currlen = EF->rows->rows[EF->cury + EF->offy].rlen;
+    }
+
     switch(key) {
         case ARROW_UP:
             if (EF->cury > 0) {
@@ -52,6 +72,7 @@ void move_cursor(int key) {
             } else if (EF->cury == 0) {
                 scroll(key);
             }
+            snap_cursor();
             break;
         case ARROW_DOWN:
             if (EF->cury < EF->sz_rows - 1) {
@@ -59,19 +80,28 @@ void move_cursor(int key) {
             } else if (EF->cury == EF->sz_rows - 1) {
                 scroll(key);
             }
+            snap_cursor();
             break;
         case ARROW_LEFT:
             if (EF->curx > 0) {
                 EF->curx--;
-            } else if (EF->curx == 0) {
+            } else if (EF->curx == 0 && EF->offx != 0) {
                 scroll(key);
+            } else if (EF->curx + EF->offx == 0 && EF->cury != 0) {
+                EF->cury--;
+                EF->curx = EF->rows->rows[EF->cury + EF->offy].len;
+                snap_cursor();
             }
             break;
         case ARROW_RIGHT:
-            if (EF->curx < EF->sz_cols - 1) {
+            if (EF->curx < EF->sz_cols - 1 && EF->curx + EF->offx < currlen ) {
                 EF->curx++;
             } else if (EF->curx == EF->sz_cols - 1) {
                 scroll(key);
+            } else if (EF->curx + EF->offx == currlen && EF->cury > 0) {
+                EF->cury++;
+                EF->curx = 0;
+                snap_cursor();
             }
             break;
     }

@@ -92,3 +92,16 @@ void free_rows(rows_t* rows) {
     free(rows->rows);
     free(rows);
 }
+
+void calc_render_row(row_t* row) {
+    free(row->rbuf);
+    row->rbuf = malloc(row->len + 1);
+
+    int i = 0, j = 0;
+
+    while(j < row->len) {
+        row->rbuf[i++] = row->buf[j++];
+    }
+    row->rbuf[i] = '\0';
+    row->rlen = i;
+}

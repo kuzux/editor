@@ -108,6 +108,12 @@ void load_file(const char* filename) {
 
         memcpy(newrow.buf, line, linelen);
         newrow.buf[linelen] = '\0';
+
+        newrow.rbuf = NULL;
+        newrow.rlen = 0;
+
+        calc_render_row(&newrow);
+        
         insert_row(EF->rows, &newrow);
     }
 

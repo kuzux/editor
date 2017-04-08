@@ -2,8 +2,18 @@
 #define _ROWS_H
 
 typedef struct row {
+    /* TODO: Do we need a faster implementation
+     * or one that uses less memory?
+     * Is it a form of premature optimization?
+     */
+
+    /* Exact contents */
     char* buf;
     int len;
+
+    /* Rendered output */
+    char* rbuf;
+    int rlen;
 } row_t;
 
 /* That is a simple vector structure for now, but in the future,
@@ -22,5 +32,7 @@ typedef struct rows {
 rows_t* make_rows();
 void insert_row(rows_t* rows, row_t* row);
 void free_rows(rows_t* rows);
+
+void calc_render_row(row_t* row);
 
 #endif
