@@ -10,16 +10,22 @@
  * the line
  */
 void snap_cursor() {
-    int currlen = 0;
-
     if(EF->cury + EF->offy < EF->rows->length) {
-        currlen = EF->rows->rows[EF->cury + EF->offy].rlen;
-    }
-
-    if(currlen < EF->offx) {
-        EF->offx = currlen - 1;
-    } else if(EF->curx + EF->offx > currlen) {
-        EF->curx = currlen - EF->offx;
+        row_t curr = EF->rows->rows[EF->cury+EF->offy];
+        if(EF->curx > curr.rlen) { 
+            if(curr.rlen < EF->sz_cols) {
+                /* We are going back to zero horizontal scroll */
+                EF->curx = curr.rlen;
+                EF->offx = 0;
+            } else if(curr.rlen > EF->offx && curr.rlen < EF->offx + EF->sz_cols) {
+                /* We don't need to scroll */
+                EF->curx = curr.rlen - EF->offx;
+            } else {
+                /* We need to scroll */
+                EF->curx = EF->sz_cols;
+                EF->offx = curr.rlen - EF->sz_cols;
+            }
+        }
     }
 }
 
@@ -42,8 +48,6 @@ void scroll(int key) {
         currlen = curr.rlen;
     }
 
-    /* TODO: Handle tabs */
-
     switch(key) {
         case ARROW_UP:
             if(EF->offy > 0) {
@@ -58,17 +62,27 @@ void scroll(int key) {
         case ARROW_LEFT:
             if(EF->offx > 0) {
                 EF->offx--;
+
+                /* Move right in source coordinates as well */
+                EF->srcx--;
             }
             break;
         case ARROW_RIGHT:
             if(EF->sz_cols + EF->offx <= currlen) {
                 EF->offx++;
+
+                /* Move right in source coordinates as well */
+                EF->srcx++;
             }
+            break;
+        default:
+            DEADCODE;
             break;
     }
 }
 
-/* Assume key is an arrow key
+/**
+ * Assume key is an arrow key
  * Move one way accordingly 
  */
 void move_cursor(int key) {
@@ -136,8 +150,6 @@ void move_cursor(int key) {
             /**
              * This is (at keast should be) the same thing as move left, 
              * only flipped
-             * TODO: Implement this for horizontal scrolling and 
-             * wrapped text
              */
             if (EF->curx < EF->sz_cols - 1 && EF->curx + EF->offx < currlen ) {
                 EF->srcx++;
@@ -154,6 +166,14 @@ void move_cursor(int key) {
                 } else {
                     EF->curx++;
                 }
+
+                /**
+                 * We might need to scroll horizontally after
+                 * going over a tab
+                 */
+                while(EF->curx >= EF->sz_cols - 1) {
+                    scroll(key);
+                }
             } else if (EF->curx == EF->sz_cols - 1) {
                 scroll(key);
             } else if (EF->curx + EF->offx == currlen && EF->cury > 0) {
@@ -164,7 +184,7 @@ void move_cursor(int key) {
             }
             break;
         default:
-            /* TODO: Add an extra shouldn't happen case here */
+            DEADCODE;
             break;
     }
 }
@@ -173,6 +193,8 @@ void process_key() {
     int c = readkey();
 
     int times = 0;
+
+    row_t curr = EF->rows->rows[EF->cury+EF->offy];
 
     switch(c) {
         case CTRL_KEY('q'):
@@ -202,10 +224,24 @@ void process_key() {
             }
             break;
         case HOME_KEY:
+            /* TODO: jump to first non-whitespace character */
             EF->curx = 0;
+            EF->srcx = 0;
             break;
         case END_KEY:
-            EF->curx = EF->sz_cols - 1;
+            if(curr.rlen < EF->sz_cols) {
+                /* We are going back to zero horizontal scroll */
+                EF->curx = curr.rlen;
+                EF->offx = 0;
+            } else if(curr.rlen > EF->offx && curr.rlen < EF->offx + EF->sz_cols) {
+                /* We don't need to scroll */
+                EF->curx = curr.rlen - EF->offx;
+            } else {
+                /* We need to scroll */
+                EF->curx = EF->sz_cols;
+                EF->offx = curr.rlen - EF->sz_cols;
+            }
+            EF->srcx = curr.len;
             break;
         case DEL_KEY:
             /* Do nothing */

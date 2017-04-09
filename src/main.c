@@ -9,10 +9,6 @@
 #include <fled/output.h>
 
 /**
- * GLOBAL TODO: More debug messages
- */
-
-/**
  * This program uses the termios stuff and
  * requires a unix-like environment to run
  * linux and OSX are okay, but for windows;
@@ -35,7 +31,7 @@
  * Or at least, make it so that only 
  * the truly global stuff need to be there
  */
-fled_config_t* EF;
+fled_state_t* EF;
 
 void resize_editor(int signo) {
     if(signo!=SIGWINCH) {
@@ -43,6 +39,7 @@ void resize_editor(int signo) {
     }
 
     int res = get_ws(&EF->sz_rows, &EF->sz_cols);
+    DEBUG_LOG("resized\n");
 
     if(res == -1) {
         DIE("get_ws");
@@ -55,7 +52,7 @@ void init_editor() {
 
     int res;
 
-    EF = (fled_config_t*)malloc(sizeof(fled_config_t));
+    EF = (fled_state_t*)malloc(sizeof(fled_state_t));
 
     /* Bail on malloc failure */
     if(EF == NULL) {
@@ -150,7 +147,7 @@ void cleanup() {
 int main(int argc, char** argv) {
     init_editor();
 
-    /* load a file if we are given an argument */
+    /* Load a file if we are given an argument */
     if(argc >= 2) {
         load_file(argv[1]);
     }

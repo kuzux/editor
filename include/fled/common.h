@@ -74,7 +74,18 @@
     exit(0);\
 }
 
-typedef struct fled_config {
+#define DEADCODE {\
+    if(DEBUG) {\
+        DIE("Shouldn't happen");\
+    }\
+}
+
+typedef struct fled_config
+{
+    
+} fled_config_t;
+
+typedef struct fled_state {
     /**
      * TODO: Refactor some of those to a buffer or a
      * display object or something
@@ -113,10 +124,12 @@ typedef struct fled_config {
     /* A data structure to store each row */
     rows_t* rows;
 
+    fled_config_t fled_config;
+    
 #if DEBUG
     FILE* debug_log;
 #endif
-} fled_config_t;
+} fled_state_t;
 
 typedef enum special_keys {
     ARROW_LEFT = 1000,
@@ -135,6 +148,6 @@ typedef enum special_keys {
  * defined in main.c in a non-extern manner
  * although it is not really used there
  */
-extern fled_config_t* EF;
+extern fled_state_t* EF;
 
 #endif
