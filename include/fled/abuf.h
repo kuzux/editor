@@ -3,7 +3,9 @@
 
 /**
  * An append buffer structrure 
- * TODO: replace this with something a bit more performant */
+ * A super simple structure. Horribly inefficient but shouldn't
+ * be longer than a screen long of content
+ */
 
 typedef struct abuf {
     char* buf;

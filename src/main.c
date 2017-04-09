@@ -39,6 +39,10 @@ void resize_editor(int signo) {
     }
 
     int res = get_ws(&EF->sz_rows, &EF->sz_cols);
+    
+    /* Reserve for our statusbar */
+    EF->sz_rows--;
+
     DEBUG_LOG("resized\n");
 
     if(res == -1) {
@@ -77,6 +81,7 @@ void init_editor() {
     /* And with an empty buffer */
     EF->rows = make_rows();
 
+    EF->curr_filename = NULL;
     /* Initialize the debug log */
 #if DEBUG
     EF->debug_log = fopen("debug.log", "w");
@@ -104,6 +109,8 @@ void load_file(const char* filename) {
     if(fp == NULL) {
         DIE("fopen");
     }
+
+    EF->curr_filename = strdup(filename);
 
     size_t linecap = 0;
     int linelen;

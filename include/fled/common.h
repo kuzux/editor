@@ -64,6 +64,7 @@
         fflush(EF->debug_log);\
     }\
 }
+
 /**
  * Exit the program normally
  * clear the screen before a successful exit as well
@@ -79,13 +80,6 @@
         DIE("Shouldn't happen");\
     }\
 }
-
-typedef struct fled_config
-{
-    int tabstop;
-    int wrap;
-    int center;
-} fled_config_t;
 
 typedef struct fled_state {
     /**
@@ -127,6 +121,8 @@ typedef struct fled_state {
     rows_t* rows;
 
     fled_config_t config;
+
+    char* curr_filename;
 
 #if DEBUG
     FILE* debug_log;

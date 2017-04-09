@@ -208,6 +208,7 @@ void process_key() {
             move_cursor(c);
             break;
         case PAGE_UP:
+            EF->cury = 0;
             times = EF->sz_rows;
             while (times--) {
                 /**
@@ -218,6 +219,7 @@ void process_key() {
             }
             break;
         case PAGE_DOWN:
+            EF->cury = EF->sz_rows - 1;
             times = EF->sz_rows;
             while (times--) {
                 move_cursor(ARROW_DOWN);

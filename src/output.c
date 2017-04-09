@@ -27,7 +27,7 @@ void init_welcome_line(welcome_params_t* wp) {
     }
 }
 
-void draw_welcome_line(abuf_t* ab, int y, welcome_params_t* wp, wrap_params_t* wrapp) {
+void draw_welcome_line(abuf_t* ab, int y, welcome_params_t* wp) {
     /**
      * Those values should be conserved between iterations
      * TODO: refactor into parameters or a separate wrap method
@@ -142,6 +142,26 @@ void draw_editor_line(abuf_t* ab, int y) {
     abuf_append(ab, "\r\n", 2);
 }
 
+/** 
+ * There are two status lines when the file is completely
+ * within the screen but only one when we can scroll
+ * again, no idea why
+ */
+void draw_statusbar(abuf_t* ab) {
+    abuf_append(ab, "\x1b[7m", 4);
+
+    char status[255];
+    int len = snprintf(status, 255, "%.20s", (EF->curr_filename ? EF->curr_filename : "[No Name]"));
+
+    abuf_append(ab, status, len);
+
+    while (len < EF->sz_cols) {
+        abuf_append(ab, " ", 1);
+        len++;
+    }
+    abuf_append(ab, "\x1b[m", 3);
+}
+
 void draw_screen(abuf_t* ab) {
     int y = 0;
 
@@ -153,9 +173,17 @@ void draw_screen(abuf_t* ab) {
     wp_default->print_msg = (EF && EF->rows && EF->rows->length==0)?1:0;
 
     /* for each row on the screen */
+    /**
+     * Somewhere around there, something causes the screen to flicker
+     * when we have no file loaded
+     * possibly due to a weird escape code somewhere
+     * that's a TODO as well.
+     */
     for (y = 0; y < EF->sz_rows; y++) {
         if (y + EF->offy < EF->rows->length) {
             draw_editor_line(ab, y);
+        } else if(y==EF->sz_rows-1) {
+            draw_statusbar(ab);
         } else {
             draw_welcome_line(ab, y, wp_default);
         }
@@ -163,6 +191,7 @@ void draw_screen(abuf_t* ab) {
 
     free(wp_default);
 }
+
 
 void refresh_screen() {
     DEBUG_LOG("Start draw");
@@ -191,6 +220,7 @@ void refresh_screen() {
      */
     char buf[32];
     snprintf(buf, sizeof(buf), "\x1b[%d;%dH", EF->cury + 1, EF->curx + 1);
+
     abuf_append(&ab, buf, strlen(buf));
 
     /* Show the cursor again */
