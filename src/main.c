@@ -8,11 +8,6 @@
 #include <fled/input.h>
 #include <fled/output.h>
 
-/** 
- * GLOBAL TODO: Change the multiline comment style.
- * Do we need to add a LICENSE thing?
- */
-
 /**
  * GLOBAL TODO: More debug messages
  */

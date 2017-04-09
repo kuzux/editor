@@ -6,12 +6,14 @@
 #include <fled/common.h>
 #include <fled/terminal.h>
 
-/* TODO: Abstract the terminal functions away into a bunch of separate 
+/**
+ * TODO: Abstract the terminal functions away into a bunch of separate 
  * callbacks so that we can run in a headless mode as well
  * Another idea: provide an ncurses implementation a well 
  */
 
-/* disable terminal raw mode
+/**
+ * Disable terminal raw mode
  * by restoring the terminal attributes we read earlier
  */
 void rawmode_disable() {
@@ -21,7 +23,8 @@ void rawmode_disable() {
     }
 }
 
-/* Enable the "raw mode" of a console
+/**
+ * Enable the "raw mode" of a console
  * see http://viewsourcecode.org/snaptoken/kilo/02.enteringRawMode.html
  * raw mode = remove all or most benefits a console normally provides fot us
  * we also set a few defaults as well, those should be commonly set as well
@@ -32,8 +35,10 @@ void rawmode() {
 
     res = tcgetattr(STDIN_FILENO, &EF->orig_term);
 
-    /* Bail if the call fails
-       die is a utility macro defined in editor/common.h */
+    /**
+     * Bail if the call fails
+     * die is a utility macro defined in editor/common.h 
+     */
     if(res == -1) {
         DIE("tcgetattr");
     }
@@ -42,7 +47,8 @@ void rawmode() {
 
     raw = EF->orig_term;
 
-    /* We disable several flags in the termios structure's flag fields
+    /**
+     * We disable several flags in the termios structure's flag fields
      * using the bitwise masks defined in termios.h
      * here's a list of what they do:
      * ECHO : print out the pressed characters
@@ -58,13 +64,16 @@ void rawmode() {
     raw.c_oflag &= ~(OPOST);
     raw.c_lflag &= ~(ECHO | ICANON | ISIG | IEXTEN);
   
-    /* bitmask defined in termios.h 
+    /**
+     * A bitmask defined in termios.h 
      * so that each character is 8 bit 
      */
     raw.c_cflag |= (CS8);
 
-    /* set the read timeout to 100ms 
-     * if no input is given */
+    /**
+     * Set the read timeout to 100ms 
+     * if no input is given 
+     */
     raw.c_cc[VMIN] = 0;
     raw.c_cc[VTIME] = 1;
 
@@ -82,12 +91,14 @@ int readkey() {
 
     c = '\0';
 
-    /* Use the read system call directly because we can't read a
+    /**
+     * Use the read system call directly because we can't read a
      * raw character with any other method.
      */
     res = read(STDIN_FILENO, &c, 1); /* read a character */
 
-    /* Exit if the read call fails
+    /**
+     * Exit if the read call fails
      * also check for EAGAIN because cygwin does that when the read
      * call times out. errno and EAGAIN are defined in errno.h
      */
@@ -107,7 +118,8 @@ int readkey() {
             return '\x1b';
         }
 
-        /* Recognized escape sequences:
+        /**
+         * Recognized escape sequences:
          * \x1b[A = up arrow
          * \x1b[B = down arrow
          * \x1b[C = right arrow
@@ -151,7 +163,8 @@ int readkey() {
             }
         }
 
-        /* Return a single escape character if the we have an unknown 
+        /**
+         * Return a single escape character if the we have an unknown 
          * escape sequence 
          */
         return '\x1b';
@@ -160,7 +173,8 @@ int readkey() {
     }
 }
 
-/* This function is used if the ioctl call fails.
+/**
+ * This function is used if the ioctl call fails.
  * It sets the cursor position to (999, 999) which will hopefully
  * fall outside the terminal window and the terminal (or the
  * terminal emulator) will generate an error in the form of an escape code
@@ -188,19 +202,22 @@ int get_ws_fallback(int* rows, int* cols) {
     return 0;
 }
 
-/* Read the window size (in rows and columns) into
+/**
+ * Read the window size (in rows and columns) into
  * the two arguments that are provided.
  * Return value is 0 on success and -1 on failure.
  */
 int get_ws(int* rows, int* cols) {
-    /* try to find the terminal window size
+    /**
+     * Try to find the terminal window size
      * the ioctl function and the TIOCGWINSZ macro is defined in sys/ioctl.h
      */
     struct winsize ws;
 
     /* Try the 'easy' method first - the ioctl function */
     if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
-        /* If that fails, the fallback method to get the screen size
+        /**
+         * If that fails, the fallback method to get the screen size
          * see http://viewsourcecode.org/snaptoken/kilo/03.rawInputAndOutput.html
          * for a more detailed explanation
          */

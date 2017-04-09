@@ -18,7 +18,8 @@ typedef struct welcome_params {
 
 void init_welcome_line(welcome_params_t* wp) {
     if(wp->print_msg == 1) {
-        /* snprintf the number limited version of sprintf 
+        /**
+         * snprintf the number limited version of sprintf 
          * defined in stdio.h
          */
         wp->msg_len = snprintf(wp->msg, WELCOME_BUF_LEN,
@@ -27,13 +28,15 @@ void init_welcome_line(welcome_params_t* wp) {
 }
 
 void draw_welcome_line(abuf_t* ab, int y, welcome_params_t* wp) {
-    /* Those values should be conserved between iterations
+    /**
+     * Those values should be conserved between iterations
      * TODO: refactor into parameters or a separate wrap method
      */
     static int wrap = 0;
     static int wrapstart = 0;
 
-    /* This line clears the current line
+    /**
+     * This line clears the current line
      * the last argument is that we are writing 4 bytes
      * and the bytes are:
      * \x1b : the escape byte
@@ -43,7 +46,8 @@ void draw_welcome_line(abuf_t* ab, int y, welcome_params_t* wp) {
      */
     abuf_append(ab, "\x1b[2K", 4);
 
-    /* TODO: Wrapping gets wonky if it takes more than two lines
+    /**
+     * TODO: Wrapping gets wonky if it takes more than two lines
      * However, wrapping for 2 lines works well.
      * Currently have no idea what causes this
      */
@@ -55,7 +59,8 @@ void draw_welcome_line(abuf_t* ab, int y, welcome_params_t* wp) {
         int writelen = remlen;
 
         if(remlen > EF->sz_cols - 1) {
-            /* It still goes on, we have cols-1 characters more to
+            /**
+             * It still goes on, we have cols-1 characters more to
              * write on this line.
              * The bug previously described should be something about 
              * these lines
@@ -85,7 +90,8 @@ void draw_welcome_line(abuf_t* ab, int y, welcome_params_t* wp) {
 
         if (wp->msg_len > EF->sz_cols - 1){
             if(wp->do_wrap) {
-                /* The message goes on, we'll need to continue on to the
+                /**
+                 * The message goes on, we'll need to continue on to the
                  * next line, we were able to write cols - 1 characters
                  * on this line. Set wrap to 1 to continue on the next one
                  * Also set where to be continued on the next line
@@ -168,7 +174,8 @@ void refresh_screen() {
     /* Hide the cursor */
     abuf_append(&ab, "\x1b[?25l", 6);
 
-    /* Position the cursor at top left corner
+    /**
+     * Position the cursor at top left corner
      * H with no argument = 0;0H (to top left corner, outside of the screen)
      * So that the cursor doesn't effect our repainting
      */
@@ -178,7 +185,8 @@ void refresh_screen() {
     draw_screen(&ab);
     DEBUG_LOG("End draw_screen");
 
-    /* Set the cursor to the cursor position defined in the editor config.
+    /**
+     * Set the cursor to the cursor position defined in the editor config.
      * We also add 1 as to translate between 0-indexed coordinates and
      * 1-indexed coordinates.
      */
@@ -192,7 +200,8 @@ void refresh_screen() {
     /* write and STDOUT_FILENO are defined in unistd.h */
     write(STDOUT_FILENO, ab.buf, ab.len);
 
-    /* We don't need to free the append buffer since it's defined in the stack
+    /**
+     * We don't need to free the append buffer since it's defined in the stack
      * but cleaning its internal buffer is generally a good idea.
      */
     free(ab.buf);

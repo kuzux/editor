@@ -4,7 +4,8 @@
 #include <fled/terminal.h>
 #include <fled/input.h>
 
-/* We are either at the end of a line or past it.
+/**
+ * We are either at the end of a line or past it.
  * If we went past, snap back so that we are at the end of
  * the line
  */
@@ -22,7 +23,8 @@ void snap_cursor() {
     }
 }
 
-/* Assume we are in an edge position.
+/*
+ * Assume we are in an edge position.
  * Scroll by one row or column if we need to and
  * able to
  */
@@ -32,7 +34,8 @@ void scroll(int key) {
     row_t curr;
 
     if(EF->cury + EF->offy < EF->rows->length) {
-        /* Not sure why this is off by one
+        /**
+         * Not sure why this is off by one
          * but it seems so
          */
         curr = EF->rows->rows[EF->cury + EF->offy + 1];
@@ -97,11 +100,14 @@ void move_cursor(int key) {
             break;
         case ARROW_LEFT:
             if (EF->curx > 0) {
-                /* Standard horizontal move
-                 * Decrement source coordinates by one */
+                /**
+                 * Standard horizontal move
+                 * Decrement source coordinates by one 
+                 */
                 EF->srcx--;
                 if(EF->rows->rows[EF->offy+EF->cury].buf[EF->offx+EF->srcx+1]=='\t') {
-                    /* We encountered a tab. Need to move this more 
+                    /**
+                     * We encountered a tab. Need to move this more 
                      * TODO: This needs to be changed for unicode 
                      */
                     EF->curx--;
@@ -116,7 +122,8 @@ void move_cursor(int key) {
                 /* We might need to scroll left */
                 scroll(key);
             } else if (EF->curx + EF->offx == 0 && EF->cury != 0) {
-                /* We are in the first column, move up to the 
+                /**
+                 * We are in the first column, move up to the 
                  * right end of the line 
                  */
                 EF->cury--;
@@ -126,7 +133,8 @@ void move_cursor(int key) {
             }
             break;
         case ARROW_RIGHT:
-            /* This is (at keast should be) the same thing as move left, 
+            /**
+             * This is (at keast should be) the same thing as move left, 
              * only flipped
              * TODO: Implement this for horizontal scrolling and 
              * wrapped text
@@ -134,7 +142,8 @@ void move_cursor(int key) {
             if (EF->curx < EF->sz_cols - 1 && EF->curx + EF->offx < currlen ) {
                 EF->srcx++;
 
-                /* The last minus one is due to the fact we already 
+                /**
+                 * The last minus one is due to the fact we already 
                  * incremented srcx
                  */
                 if(EF->rows->rows[EF->offy+EF->cury].buf[EF->offx+EF->srcx-1]=='\t') {
@@ -179,7 +188,8 @@ void process_key() {
         case PAGE_UP:
             times = EF->sz_rows;
             while (times--) {
-                /* Use the same up/down movement routine so that
+                /**
+                 * Use the same up/down movement routine so that
                  * we still have the bounds checking
                  */
                 move_cursor(ARROW_UP);
