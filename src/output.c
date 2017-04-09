@@ -27,7 +27,7 @@ void init_welcome_line(welcome_params_t* wp) {
     }
 }
 
-void draw_welcome_line(abuf_t* ab, int y, welcome_params_t* wp) {
+void draw_welcome_line(abuf_t* ab, int y, welcome_params_t* wp, wrap_params_t* wrapp) {
     /**
      * Those values should be conserved between iterations
      * TODO: refactor into parameters or a separate wrap method
@@ -145,10 +145,9 @@ void draw_editor_line(abuf_t* ab, int y) {
 void draw_screen(abuf_t* ab) {
     int y = 0;
 
-    /* TODO: don't hardcode that */
     welcome_params_t* wp_default = malloc(sizeof(welcome_params_t));
-    wp_default->do_wrap = 0;
-    wp_default->do_padding = 0;
+    wp_default->do_wrap = EF->config.wrap;
+    wp_default->do_padding = EF->config.center;
 
     /* Print a welcome message only if we have no file loaded */
     wp_default->print_msg = (EF && EF->rows && EF->rows->length==0)?1:0;

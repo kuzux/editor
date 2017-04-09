@@ -1,10 +1,11 @@
 OBJS:=build/main.o build/terminal.o build/input.o build/output.o build/abuf.o build/rows.o
 BIN:=build/fled
 CFLAGS:=-g -Wall -Werror -Wextra -pedantic -std=c99 -O2 -Iinclude/
+PREFIX:=/usr/local/bin
 
 all: $(BIN)
 
-.PHONY: all clean
+.PHONY: all clean install
 
 $(BIN): $(OBJS)
 	mkdir -p build
@@ -16,3 +17,6 @@ build/%.o: src/%.c
 
 clean:
 	rm $(OBJS) $(BIN)
+
+install: $(BIN)
+	cp $(BIN) $(PREFIX)

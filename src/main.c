@@ -85,6 +85,11 @@ void init_editor() {
     }
     DEBUG_LOG("Initialized editor");
 #endif
+
+    /* Set the default config */
+    EF->config.tabstop = FLED_TABSTOP;
+    EF->config.wrap    = FLED_WRAP;
+    EF->config.center  = FLED_CENTER;
 }
 
 void load_file(const char* filename) {

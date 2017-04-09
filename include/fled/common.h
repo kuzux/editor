@@ -9,13 +9,13 @@
 #include <unistd.h>
 #include <termios.h>
 
+#include <fled/config.h>
 #include <fled/rows.h>
 
 /* Define our version */
 #define FLED_VERSION "0.0.1"
 #define DEBUG 1
 #define NDEBUG
-#define FLED_TABSTOP 4
 
 #define CTRL_KEY(k) ((k) & 0x1f)
 
@@ -82,7 +82,9 @@
 
 typedef struct fled_config
 {
-    
+    int tabstop;
+    int wrap;
+    int center;
 } fled_config_t;
 
 typedef struct fled_state {
@@ -124,8 +126,8 @@ typedef struct fled_state {
     /* A data structure to store each row */
     rows_t* rows;
 
-    fled_config_t fled_config;
-    
+    fled_config_t config;
+
 #if DEBUG
     FILE* debug_log;
 #endif
