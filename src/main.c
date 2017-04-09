@@ -8,23 +8,37 @@
 #include <fled/input.h>
 #include <fled/output.h>
 
-/* This program uses the termios stuff and
+/** 
+ * GLOBAL TODO: Change the multiline comment style.
+ * Do we need to add a LICENSE thing?
+ */
+
+/**
+ * GLOBAL TODO: More debug messages
+ */
+
+/**
+ * This program uses the termios stuff and
  * requires a unix-like environment to run
  * linux and OSX are okay, but for windows;
  * see http://viewsourcecode.org/snaptoken/kilo/01.setup.html
  */
 
-/* GLOBAL TODO: handle multibyte encodings
+/**
+ * GLOBAL TODO: handle multibyte encodings
  * or just any non-ASCII one
  * also RTL text etc.
  */
 
-/* A global variable that holds the editor state
+/**
+ * A global variable that holds the editor state
  * actually defined (as an extern) in common.h and available to all files
  * that include it
  * The name is a joke. It used to be called just E
  * TODO: don't make that a global variable, 
  * is that actually possible when we use atexit?
+ * Or at least, make it so that only 
+ * the truly global stuff need to be there
  */
 fled_config_t* EF;
 
@@ -41,7 +55,9 @@ void resize_editor(int signo) {
 }
 
 void init_editor() {
+    /* Resize the editor each time our terminal size changes */
     signal(SIGWINCH, resize_editor);
+
     int res;
 
     EF = (fled_config_t*)malloc(sizeof(fled_config_t));
@@ -62,6 +78,9 @@ void init_editor() {
     /* Start at the top left corner */
     EF->curx = EF->cury = 0;
     EF->srcx = 0;
+
+    /* Start at the top left corner */
+    EF->offx = EF->offy = 0;
 
     /* And with an empty buffer */
     EF->rows = make_rows();
@@ -128,20 +147,26 @@ void load_file(const char* filename) {
 }
 
 void cleanup() {
-    #if DEBUG
+#if DEBUG
     fclose(EF->debug_log);
-    #endif
+#endif
 }
 
 int main(int argc, char** argv) {
     init_editor();
 
+    /* load a file if we are given an argument */
     if(argc >= 2) {
         load_file(argv[1]);
     }
 
+    /**
+     * Enter raw mode, and set up a callback to exit at the end
+     * this function is defined in terminal.c
+     */
     rawmode();
 
+    /* for each frame */
     while(1) {
         refresh_screen();
         process_key();

@@ -1,7 +1,8 @@
 #ifndef _ABUF_H
 #define _ABUF_H
 
-/* append buffer structrure 
+/**
+ * An append buffer structrure 
  * TODO: replace this with something a bit more performant */
 
 typedef struct abuf {

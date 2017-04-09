@@ -2,7 +2,8 @@
 #define _ROWS_H
 
 typedef struct row {
-    /* TODO: Do we need a faster implementation
+    /**
+     * TODO: Do we need a faster implementation
      * or one that uses less memory?
      * Is it a form of premature optimization?
      */
@@ -16,7 +17,8 @@ typedef struct row {
     int rlen;
 } row_t;
 
-/* That is a simple vector structure for now, but in the future,
+/**
+ * That is a simple vector structure for now, but in the future,
  * we'll probably need to implement a better (and more efficient data
  * structure that will speed things up
  */

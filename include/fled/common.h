@@ -19,7 +19,8 @@
 
 #define CTRL_KEY(k) ((k) & 0x1f)
 
-/* Exit the program after an error
+/**
+ * Exit the program after an error
  * clear the screen before we exit
  * we can't do this atexit because that also clears the error message
  * printed out by the perror function.
@@ -29,14 +30,16 @@
  * backslash at the end of the comment)
  */
 #define DIE(s) {\
-    /* Clear the entire screen
+    /**
+     * Clear the entire screen
      * \x1b[ : start an escape sequence
      * 2 : entire screen
      * J : clear
      */\
     write(STDOUT_FILENO, "\x1b[2J", 4);\
 \
-    /* Move the cursor to an off-screen position 
+    /**
+     * Move the cursor to an off-screen position 
      * The default arguments are 0;0
      */\
     write(STDOUT_FILENO, "\x1b[H", 3);\
@@ -45,7 +48,8 @@
     exit(1);\
 }
 
-/* Append to our debug log
+/**
+ * Append to our debug log
  * No need for this define to do anything if debug is off
  */
 #define DEBUG_LOG(msg) {\
@@ -60,7 +64,8 @@
         fflush(EF->debug_log);\
     }\
 }
-/* Exit the program normally
+/**
+ * Exit the program normally
  * clear the screen before a successful exit as well
  */
 #define EXIT() {\
@@ -70,32 +75,42 @@
 }
 
 typedef struct fled_config {
-    /* TODO: Refactor some of those to a buffer or a
+    /**
+     * TODO: Refactor some of those to a buffer or a
      * display object or something
      */
 
-    /* Terminal information at the start
+    /**
+     * Terminal information at the start
      * a system-defined termios structure
      */
     struct termios orig_term;
 
-    /* Terminal size in rows and columns (we are obviously in text mode) */
+    /**
+     * Terminal size in rows and columns (
+     * we are obviously in text mode)
+     */
     int sz_rows, sz_cols;
 
-    /* Cursor position, 0-indexed
+    /** 
+     * Cursor position, 0-indexed
      * in screen coordinates
      */
     int curx, cury;
 
-    /* X position in the source file 
+    /**
+     * X position in the source file 
      * in source coordinates
      */
     int srcx;
 
-    /* Display offset in the file, 0-indexed again */
+    /**
+     * Display offset in the file, 0-indexed again
+     * this time in file coordinates
+     */
     int offx, offy;
 
-    /* An data structure to store each row */
+    /* A data structure to store each row */
     rows_t* rows;
 
 #if DEBUG
@@ -115,7 +130,8 @@ typedef enum special_keys {
     DEL_KEY
 } special_keys_t;
 
-/* A struct containing global definitions
+/**
+ * A struct containing global definitions
  * defined in main.c in a non-extern manner
  * although it is not really used there
  */

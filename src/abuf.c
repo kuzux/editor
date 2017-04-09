@@ -3,7 +3,8 @@
 #include <fled/common.h>
 #include <fled/abuf.h>
 
-/* append a string to our buffer
+/**
+ * Append a string to our buffer
  * note that this is a very naive implementation and will only
  * work good for small size buffers (like screen buffers)
  * not for e.g. reading large files

@@ -4,6 +4,10 @@
 #include <fled/terminal.h>
 #include <fled/input.h>
 
+/* We are either at the end of a line or past it.
+ * If we went past, snap back so that we are at the end of
+ * the line
+ */
 void snap_cursor() {
     int currlen = 0;
 
@@ -18,6 +22,10 @@ void snap_cursor() {
     }
 }
 
+/* Assume we are in an edge position.
+ * Scroll by one row or column if we need to and
+ * able to
+ */
 void scroll(int key) {
     /* Set the current row length if the current row exists */
     int currlen = 0;
@@ -31,8 +39,9 @@ void scroll(int key) {
         currlen = curr.rlen;
     }
 
-    switch(key) {
+    /* TODO: Handle tabs */
 
+    switch(key) {
         case ARROW_UP:
             if(EF->offy > 0) {
                 EF->offy--;
@@ -49,16 +58,18 @@ void scroll(int key) {
             }
             break;
         case ARROW_RIGHT:
-            DEBUG_LOGF("%d %s\n", EF->cury + EF->offy, curr.buf);
             if(EF->sz_cols + EF->offx <= currlen) {
                 EF->offx++;
             }
-            DEBUG_LOG("Do we get there?");
             break;
     }
 }
 
+/* Assume key is an arrow key
+ * Move one way accordingly 
+ */
 void move_cursor(int key) {
+    /* Get the length of the current line */
     int currlen = 0;
 
     if(EF->cury + EF->offy < EF->rows->length) {
@@ -68,8 +79,10 @@ void move_cursor(int key) {
     switch(key) {
         case ARROW_UP:
             if (EF->cury > 0) {
+                /* Simply move up */
                 EF->cury--;
             } else if (EF->cury == 0) {
+                /* We might need to scroll up if we are on the top row */
                 scroll(key);
             }
             snap_cursor();
@@ -84,25 +97,65 @@ void move_cursor(int key) {
             break;
         case ARROW_LEFT:
             if (EF->curx > 0) {
-                EF->curx--;
+                /* Standard horizontal move
+                 * Decrement source coordinates by one */
+                EF->srcx--;
+                if(EF->rows->rows[EF->offy+EF->cury].buf[EF->offx+EF->srcx+1]=='\t') {
+                    /* We encountered a tab. Need to move this more 
+                     * TODO: This needs to be changed for unicode 
+                     */
+                    EF->curx--;
+                    while (EF->curx % FLED_TABSTOP != 0) {
+                        EF->curx--;
+                    }
+                } else {
+                    /* Non-tab character */
+                    EF->curx--;
+                }
             } else if (EF->curx == 0 && EF->offx != 0) {
+                /* We might need to scroll left */
                 scroll(key);
             } else if (EF->curx + EF->offx == 0 && EF->cury != 0) {
+                /* We are in the first column, move up to the 
+                 * right end of the line 
+                 */
                 EF->cury--;
-                EF->curx = EF->rows->rows[EF->cury + EF->offy].len;
+                EF->curx = EF->rows->rows[EF->cury + EF->offy].rlen;
+                EF->srcx = EF->rows->rows[EF->cury + EF->offy].len;
                 snap_cursor();
             }
             break;
         case ARROW_RIGHT:
+            /* This is (at keast should be) the same thing as move left, 
+             * only flipped
+             * TODO: Implement this for horizontal scrolling and 
+             * wrapped text
+             */
             if (EF->curx < EF->sz_cols - 1 && EF->curx + EF->offx < currlen ) {
-                EF->curx++;
+                EF->srcx++;
+
+                /* The last minus one is due to the fact we already 
+                 * incremented srcx
+                 */
+                if(EF->rows->rows[EF->offy+EF->cury].buf[EF->offx+EF->srcx-1]=='\t') {
+                    EF->curx++;
+                    while (EF->curx % FLED_TABSTOP != 0) {
+                        EF->curx++;
+                    }
+                } else {
+                    EF->curx++;
+                }
             } else if (EF->curx == EF->sz_cols - 1) {
                 scroll(key);
             } else if (EF->curx + EF->offx == currlen && EF->cury > 0) {
                 EF->cury++;
                 EF->curx = 0;
+                EF->srcx = 0;
                 snap_cursor();
             }
+            break;
+        default:
+            /* TODO: Add an extra shouldn't happen case here */
             break;
     }
 }
