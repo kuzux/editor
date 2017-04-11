@@ -36,3 +36,10 @@ fled
 *.dSYM/
 *.su
 debug.log
+
+# VS Code
+.vscode/
+
+# Rust stuff
+target/
+Cargo.lock
