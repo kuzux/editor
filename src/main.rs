@@ -4,8 +4,9 @@ mod output; // view
 
 mod viewmodel;
 mod model;
+mod terminal;
 
-use std::io::{stdin, stdout, Stdout};
+use std::io::{stdin, stdout, Stdout, Write};
 
 use termion::raw::{IntoRawMode, RawTerminal};
 
@@ -13,20 +14,25 @@ use model::Model;
 use viewmodel::ViewModel;
 
 fn main() {
-    let mut out : RawTerminal<Stdout> = stdout().into_raw_mode()
+    let mut out = stdout()
+        .into_raw_mode()
         .unwrap();
+
+    terminal::set_refresh(&mut out);
 
     let mut inp = stdin();
 
-    let model : Model = Model { };
-    let vm : ViewModel = ViewModel { quit: false };
+    let mut model : Model = Model { };
+    let mut vm : ViewModel = ViewModel { quit: false };
 
     loop { 
-        let (model, vm) = input::handle(&mut inp, model, vm);
-        output::draw(&mut out, vm);
+        input::handle(&mut inp, &mut model, &mut vm);
+        output::draw(&mut out, &vm);
 
-        if (vm.quit) {
+        if vm.quit {
             break;
         }
+
+        out.flush().unwrap();
     }
 }

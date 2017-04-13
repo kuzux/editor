@@ -7,13 +7,9 @@ use termion::input::TermRead;
 use model::Model;
 use viewmodel::ViewModel;
 
-pub fn handle(inp: &mut Stdin, model: Model, vm: ViewModel) -> (Model, ViewModel) { 
-    for c in inp.keys() {
-        match c.unwrap() {
-            Key::Ctrl('q') => { return ( model, ViewModel {quit: true, .. vm} ); }
-            _ => { }
-        }
+pub fn handle(inp: &mut Stdin, model: &mut Model, vm: &mut ViewModel) { 
+    match inp.keys().next().unwrap().unwrap() {
+        Key::Ctrl('q') => { vm.quit = true; }
+        _ => { }
     }
-
-    (model, vm)
 }
