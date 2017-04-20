@@ -7,6 +7,8 @@ mod model;
 mod terminal;
 
 use std::io::{stdin, stdout, Stdout, Write};
+use std::thread;
+use std::time::Duration;
 
 use termion::raw::{IntoRawMode, RawTerminal};
 
@@ -20,13 +22,14 @@ fn main() {
 
     terminal::set_refresh(&mut out);
 
-    let mut inp = stdin();
 
     let mut model : Model = Model { };
     let mut vm : ViewModel = ViewModel { quit: false };
 
+    thread::spawn(|| { input::read(&mut stdin()); });
+
     loop { 
-        input::handle(&mut inp, &mut model, &mut vm);
+        input::handle(&mut stdin(), &mut model, &mut vm);
         output::draw(&mut out, &vm);
 
         if vm.quit {
@@ -34,5 +37,7 @@ fn main() {
         }
 
         out.flush().unwrap();
+
+        thread::sleep(Duration::from_millis(50));
     }
 }
