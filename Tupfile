@@ -1,0 +1,9 @@
+CC := clang
+
+CFLAGS := -g -Wall -Werror -Wpedantic
+LDFLAGS := -lm -lncurses
+
+TARGET := dest/fled
+
+: foreach src/*.c |> $(CC) -c %f $(CFLAGS) -o %o |> dest/%B.o
+: dest/*.o |> $(CC) %f $(LDFLAGS) -o %o |> $(TARGET)

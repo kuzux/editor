@@ -1,183 +1,187 @@
-#include <string.h>
-#include <stdio.h>
-#include <signal.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdbool.h>
+
+#include <assert.h>
+
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <errno.h>
 
-#include <fled/common.h>
-#include <fled/terminal.h>
-#include <fled/input.h>
-#include <fled/output.h>
+#include <ncurses.h>
 
-/**
- * This program uses the termios stuff and
- * requires a unix-like environment to run
- * linux and OSX are okay, but for windows;
- * see http://viewsourcecode.org/snaptoken/kilo/01.setup.html
- */
+#define DEFAULT_GAP_SIZE 15
 
-/**
- * GLOBAL TODO: handle multibyte encodings
- * or just any non-ASCII one
- * also RTL text etc.
- */
+#define SUCCESS 0
+#define ERR_ARG -1
+#define ERR_ALLOC -2
+#define ERR_FILEIO -3
 
-/**
- * A global variable that holds the editor state
- * actually defined (as an extern) in common.h and available to all files
- * that include it
- * The name is a joke. It used to be called just E
- * TODO: don't make that a global variable, 
- * is that actually possible when we use atexit?
- * Or at least, make it so that only 
- * the truly global stuff need to be there
- */
-fled_state_t* EF;
+/* Represents an unloaded part of the file */
+typedef struct {
+    /* How do we free a chunk? */
+    char* buf;
+    size_t len;
+} filechunk_t;
 
-void resize_editor(int signo) {
-    if(signo!=SIGWINCH) {
-        DIE("resize_editor");
+/* Each line is a gap buffer */
+typedef struct editline {
+    /* A line can be unloaded */
+    bool loaded;
+    filechunk_t chunk;
+
+    /* Allocated size */
+    size_t size;
+    /* Should we have some kind of pool for buffers <= 100 chars? 
+     * as well as editline objects */
+    char* buf;
+
+    /* Current length of the string (excluding the gap) */
+    size_t currlen;
+
+    struct editline* next;
+    struct editline* prev;
+
+    size_t gap_size;
+
+    size_t gap_start;
+    size_t gap_end;
+} editline_t;
+
+typedef struct {
+    editline_t* head;
+    size_t num_lines;
+
+    size_t cursor_x;
+    size_t cursor_y;
+
+    size_t screen_x;
+    size_t screen_y;
+
+    size_t screen_width;
+    size_t screen_height;
+} editbuffer_t;
+
+static editbuffer_t editbuffer;
+
+int load_file(FILE* fp, filechunk_t* chunk) {
+    if(fp == NULL || chunk == NULL) {
+        return ERR_ARG;
     }
 
-    int res = get_ws(&EF->sz_rows, &EF->sz_cols);
+    /* find the file length */
+    fseek(fp, 0, SEEK_END);
+    chunk->len = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+
+    chunk->buf = (char*)malloc(sizeof(char)*(chunk->len+1));
+    if(chunk->buf == NULL) {
+        return ERR_ALLOC;
+    }
+
+    int read = fread(chunk->buf, 1, chunk->len, fp);
+    if(read == chunk->len) {
+        return SUCCESS;
+    } else {
+        return ERR_FILEIO;
+    }
+}
+
+int get_line_from_chunk(filechunk_t* chunk, editline_t* line) {
+    if(chunk == NULL || line == NULL) {
+        return ERR_ARG;
+    }
+
+    size_t i = 0;
+    while(chunk->buf[i]!='\n' && i < chunk->len) {
+        i++;
+    }
+
+    line->size = i;
+    line->currlen = i;
     
-    /* Reserve for our statusbar */
-    EF->sz_rows--;
-
-    DEBUG_LOG("resized\n");
-
-    if(res == -1) {
-        DIE("get_ws");
+    line->buf = malloc(sizeof(char)*(i+1));
+    if(line->buf == NULL) {
+        return ERR_ALLOC;
     }
+
+    memcpy(line->buf, chunk->buf, i);
+    line->buf[i] = 0;
+    if(i == chunk->len) {
+        /* We're at the end of the file, no new line at the end */
+        chunk->buf += i;
+        chunk->len -= i;
+    } else {
+        /* Also ignore the newline at the end */
+        chunk->buf += i+1; 
+        chunk->len -= i+1;
+    }
+
+    line->gap_size = 0;
+    line->gap_start = 0;
+    line->gap_end = 0;
+
+    /* next and prev pointers are not set here */
+
+    return SUCCESS;
 }
 
-void init_editor() {
-    /* Resize the editor each time our terminal size changes */
-    signal(SIGWINCH, resize_editor);
+int get_lines_for_editbuffer(editbuffer_t* buffer, filechunk_t* chunk) {
+    if(chunk == NULL || buffer == NULL) {
+        return ERR_ARG;
+    }
+    size_t num_lines = buffer->screen_height;
+    int rc;
 
-    int res;
-
-    EF = (fled_state_t*)malloc(sizeof(fled_state_t));
-
-    /* Bail on malloc failure */
-    if(EF == NULL) {
-        DIE("malloc");
+    for(size_t i=0; i<num_lines && chunk->len > 0; i++) {
+        editline_t* line = (editline_t*)malloc(sizeof(editline_t));
+        rc = get_line_from_chunk(chunk, line);
+        assert(rc >= 0);
+        printw("%s\n", line->buf);
     }
 
-    /* Get the window size */
-    res = get_ws(&EF->sz_rows, &EF->sz_cols);
-
-    /* If the call fails */
-    if(res == -1) {
-        DIE("get_ws");
-    }
-
-    /* Start at the top left corner */
-    EF->curx = EF->cury = 0;
-    EF->srcx = 0;
-
-    /* Start at the top left corner */
-    EF->offx = EF->offy = 0;
-
-    /* And with an empty buffer */
-    EF->rows = make_rows();
-
-    EF->curr_filename = NULL;
-    /* Initialize the debug log */
-#if DEBUG
-    EF->debug_log = fopen("debug.log", "w");
-    if(EF->debug_log == NULL) {
-        DIE("debug log");
-    }
-    DEBUG_LOG("Initialized editor");
-#endif
-
-    /* Set the default config */
-    EF->config.tabstop = FLED_TABSTOP;
-    EF->config.wrap    = FLED_WRAP;
-    EF->config.center  = FLED_CENTER;
-}
-
-void load_file(const char* filename) {
-    DEBUG_LOG("Loading file");
-
-    if(EF == NULL) {
-        DIE("editor config");
-    }
-
-    FILE* fp = fopen(filename, "r");
-
-    if(fp == NULL) {
-        DIE("fopen");
-    }
-
-    EF->curr_filename = strdup(filename);
-
-    size_t linecap = 0;
-    int linelen;
-    char* line = NULL;
-
-    while((linelen = getline(&line, &linecap, fp)) != -1) {
-        /* TODO: handle unicode */
-        if(linelen > 0 && (line[linelen - 1] == '\n' || line[linelen - 1] == '\r')) {
-            linelen--;
-        }
-
-        row_t newrow;
-
-        newrow.len = linelen;
-        newrow.buf = malloc(linelen + 1);
-        if(newrow.buf == NULL) {
-            DIE("malloc");
-        }
-
-        memcpy(newrow.buf, line, linelen);
-        newrow.buf[linelen] = '\0';
-
-        newrow.rbuf = NULL;
-        newrow.rlen = 0;
-
-        calc_render_row(&newrow);
-
-        insert_row(EF->rows, &newrow);
-    }
-
-    /* Reset the offset */
-    EF->offx = EF->offy = 0;
-
-    free(line);
-    fclose(fp);
-
-    DEBUG_LOG("Loaded file");
-}
-
-void cleanup() {
-#if DEBUG
-    fclose(EF->debug_log);
-#endif
+    return SUCCESS;
 }
 
 int main(int argc, char** argv) {
-    init_editor();
-
-    /* Load a file if we are given an argument */
-    if(argc >= 2) {
-        load_file(argv[1]);
+    if(argc < 1) {
+        printf("usage: %s filename \n", argv[0]);
     }
 
-    /**
-     * Enter raw mode, and set up a callback to exit at the end
-     * this function is defined in terminal.c
-     */
-    rawmode();
+    int rc;
 
-    /* for each frame */
-    while(1) {
-        refresh_screen();
-        process_key();
-    }
+    filechunk_t filebuf;
 
-    cleanup();
-    DEBUG_LOG("Exiting normally");
+    editbuffer.screen_height = 24;
 
-    return 0;
+    FILE* fp = fopen(argv[1], "r");
+    assert(fp);
+    rc = load_file(fp, &filebuf);
+    assert(rc >= 0);
+
+
+    initscr();
+
+    raw(); /* No line buffering */
+    keypad(stdscr, true); /* We receive function keys */
+    noecho();
+
+    rc = get_lines_for_editbuffer(&editbuffer, &filebuf);
+    assert(rc >= 0);
+
+
+    printw("heya\n");
+    printw("press a key\n");
+    refresh();
+
+    int ch = getch();
+    printw("You pressed: %c (keycode %d)\n", (char)ch, ch);
+    printw("Press any key to continue\n");
+
+    getch(); /* Wait for any key on exit */
+
+    endwin();
+
+    return EXIT_SUCCESS;    
 }

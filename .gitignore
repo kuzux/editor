@@ -43,3 +43,5 @@ debug.log
 # Rust stuff
 target/
 Cargo.lock
+
+.tup/
